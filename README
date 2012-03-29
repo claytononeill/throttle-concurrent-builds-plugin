@@ -5,12 +5,11 @@ allowed to run on a given node at one time.
 Category Reader/Writer locks
 ----------------------------
 Global reader/writer locks are implemented for categories, but not per
-node reader/writer locks.  To use them, configure a job to throttle on
-the category as a reader or a writer.
+node reader/writer locks.  To use global locks, configure a job to
+throttle on the category as a reader or a writer, instead of normal.
 
 If a job starts that is a reader on a category and any writers on that
 category are running on any node, then it will block until no writer
-is running on that node.  If a job starts as as a writer a category
-and and any writers *or* readers on that category are running, then it
-will block.  Note that it's possible for readers to starve out
-writers.
+is running on any node.  If a job starts as a writer on a category and
+any writers *or* readers on that category are running, then it will
+block.  Note that it's possible for readers to starve out writers.
