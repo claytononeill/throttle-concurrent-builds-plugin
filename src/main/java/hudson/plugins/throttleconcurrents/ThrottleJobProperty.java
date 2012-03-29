@@ -32,7 +32,7 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
     
     private Integer maxConcurrentPerNode;
     private Integer maxConcurrentTotal;
-    private List<ThrottleCategoryConfiguration> categoryConfigurations;
+    private List<CategoryConfiguration> categoryConfigurations;
     private boolean throttleEnabled;
     private String throttleOption;
 
@@ -45,7 +45,7 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
     @DataBoundConstructor
     public ThrottleJobProperty(Integer maxConcurrentPerNode,
                                Integer maxConcurrentTotal,
-                               List<ThrottleCategoryConfiguration> categoryConfigurations,
+                               List<CategoryConfiguration> categoryConfigurations,
                                boolean throttleEnabled,
                                String throttleOption) {
         this.maxConcurrentPerNode = maxConcurrentPerNode == null ? 0 : maxConcurrentPerNode;
@@ -64,18 +64,18 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
             configVersion = 0L;
         }
         if (categoryConfigurations == null) {
-            categoryConfigurations = new ArrayList<ThrottleCategoryConfiguration>();
+            categoryConfigurations = new ArrayList<CategoryConfiguration>();
         }
 
         if (category != null) {
-            ThrottleCategoryConfiguration x = new ThrottleCategoryConfiguration(category, "normal");
+            CategoryConfiguration x = new CategoryConfiguration(category, "normal");
             categoryConfigurations.add(x);
             category = null;
         }
 
         if (categories != null) {
             for (String c : categories) {
-                ThrottleCategoryConfiguration x = new ThrottleCategoryConfiguration(c, "normal");
+                CategoryConfiguration x = new CategoryConfiguration(c, "normal");
                 categoryConfigurations.add(x);
             }
             categories = null;
@@ -104,7 +104,7 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
         return throttleOption;
     }
     
-    public List<ThrottleCategoryConfiguration> getCategoryConfigurations() {
+    public List<CategoryConfiguration> getCategoryConfigurations() {
         return categoryConfigurations;
     }
     
@@ -122,12 +122,12 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
         return maxConcurrentTotal;
     }
 
-    public static final class ThrottleCategoryConfiguration {
+    public static final class CategoryConfiguration {
         private String categoryName;
         private String categoryType;
 
         @DataBoundConstructor
-        public ThrottleCategoryConfiguration(String categoryName,
+        public CategoryConfiguration(String categoryName,
                                              String categoryType) {
             this.categoryName = categoryName;
             this.categoryType = categoryType;
