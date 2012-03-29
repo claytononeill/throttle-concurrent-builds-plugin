@@ -20,15 +20,45 @@
              field="maxConcurrentPerNode">
       <f:textbox />
     </f:entry>
-    <j:if test="${!empty(descriptor.categories)}">
-      <f:entry title="${%Multi-Project Throttle Category}">
-        <j:forEach var="cat" items="${descriptor.categories}">
-          <f:checkbox name="categories" json="${cat.categoryName}" checked="${instance.categories.contains(cat.categoryName)}" />
-          <label class="attach-previous">${cat.categoryName}</label>
-          <st:nbsp/>
-        </j:forEach>
-      </f:entry>
-    </j:if>
+    <f:entry title="${%Multi-Project Throttle Categories:}" field="categoryConfigurations">
+      <j:set var="top_descriptor" value="${descriptor}" />
+      <f:repeatable field="categoryConfigurations" minimum="0">
+        <table width="100%">
+          <f:entry name="categoryName" title="Category Name" field="categoryName">
+            <select name="categoryName">
+              <j:forEach var="cat" items="${top_descriptor.categories}">
+                <j:if test="${cat.categoryName == instance.categoryName}">
+                  <option value="${cat.categoryName}" selected="selected">
+                    ${cat.categoryName}</option>
+                </j:if>
+                <j:if test="${cat.categoryName != instance.categoryName}">
+                  <option value="${cat.categoryName}">${cat.categoryName}</option>
+                </j:if>
+              </j:forEach>
+            </select>
+          </f:entry>
+
+          <f:entry title="Category Type">
+            <f:radio name="categoryType" field="categoryType" value="normal"
+                     checked="${instance.categoryType==null || instance.categoryType =='normal'}"
+                     />
+            <label>Normal</label>
+            <st:nbsp />
+            <f:radio name="categoryType" field="categoryType" value="reader"
+                     checked="${instance.categoryType =='reader'}" />
+            <label>Reader</label>
+            <st:nbsp />
+            <f:radio name="categoryType" field="categoryType" value="writer"
+                     checked="${instance.categoryType =='writer'}" />
+            <label>Writer</label>
+            <st:nbsp />
+          </f:entry>
+        </table>
+        <div align="right">
+          <f:repeatableDeleteButton/>
+        </div>
+      </f:repeatable>
+    </f:entry>
   </f:optionalBlock>
 </j:jelly>
     

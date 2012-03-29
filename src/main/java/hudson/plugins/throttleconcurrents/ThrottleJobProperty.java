@@ -28,10 +28,11 @@ import java.util.logging.Level;
 public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
     // Moving category to categories, to support, well, multiple categories per job.
     @Deprecated transient String category;
+    @Deprecated transient List<String> categories;
     
     private Integer maxConcurrentPerNode;
     private Integer maxConcurrentTotal;
-    private List<String> categories;
+    private List<ThrottleCategoryConfiguration> categoryConfigurations;
     private boolean throttleEnabled;
     private String throttleOption;
 
@@ -44,12 +45,12 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
     @DataBoundConstructor
     public ThrottleJobProperty(Integer maxConcurrentPerNode,
                                Integer maxConcurrentTotal,
-                               List<String> categories,
+                               List<ThrottleCategoryConfiguration> categoryConfigurations,
                                boolean throttleEnabled,
                                String throttleOption) {
         this.maxConcurrentPerNode = maxConcurrentPerNode == null ? 0 : maxConcurrentPerNode;
         this.maxConcurrentTotal = maxConcurrentTotal == null ? 0 : maxConcurrentTotal;
-        this.categories = categories;
+        this.categoryConfigurations = categoryConfigurations;
         this.throttleEnabled = throttleEnabled;
         this.throttleOption = throttleOption;
     }
@@ -62,16 +63,26 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
         if (configVersion == null) {
             configVersion = 0L;
         }
-        if (categories == null) {
-            categories = new ArrayList<String>();
+        if (categoryConfigurations == null) {
+            categoryConfigurations = new ArrayList<ThrottleCategoryConfiguration>();
         }
+
         if (category != null) {
-            categories.add(category);
+            ThrottleCategoryConfiguration x = new ThrottleCategoryConfiguration(category, "normal");
+            categoryConfigurations.add(x);
             category = null;
         }
 
+        if (categories != null) {
+            for (String c : categories) {
+                ThrottleCategoryConfiguration x = new ThrottleCategoryConfiguration(c, "normal");
+                categoryConfigurations.add(x);
+            }
+            categories = null;
+        }
+
         if (configVersion < 1 && throttleOption == null) {
-            if (categories.isEmpty()) {
+            if (categoryConfigurations.isEmpty()) {
                 throttleOption = "project";
             }
             else {
@@ -80,7 +91,7 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
                 maxConcurrentTotal = 0;
             }
         }
-        configVersion = 1L;
+        configVersion = 2L;
         
         return this;
     }
@@ -93,8 +104,8 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
         return throttleOption;
     }
     
-    public List<String> getCategories() {
-        return categories;
+    public List<ThrottleCategoryConfiguration> getCategoryConfigurations() {
+        return categoryConfigurations;
     }
     
     public Integer getMaxConcurrentPerNode() {
@@ -111,6 +122,25 @@ public class ThrottleJobProperty extends JobProperty<AbstractProject<?,?>> {
         return maxConcurrentTotal;
     }
 
+    public static final class ThrottleCategoryConfiguration {
+        private String categoryName;
+        private String categoryType;
+
+        @DataBoundConstructor
+        public ThrottleCategoryConfiguration(String categoryName,
+                                             String categoryType) {
+            this.categoryName = categoryName;
+            this.categoryType = categoryType;
+        }
+
+        public String getCategoryName() {
+            return categoryName;
+        }
+
+        public String getCategoryType() {
+            return categoryType;
+        }
+    }
     @Extension
     public static final class DescriptorImpl extends JobPropertyDescriptor {
         private List<ThrottleCategory> categories;
