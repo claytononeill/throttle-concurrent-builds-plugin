@@ -49,10 +49,11 @@ public class ThrottleQueueTaskDispatcher extends QueueTaskDispatcher {
             }
             else if (tjp.getThrottleOption().equals("category")) {
                 // If the project is in one or more categories...
-                if (tjp.getCategories() != null && !tjp.getCategories().isEmpty()) {
-                    for (String catNm : tjp.getCategories()) {
+                if (tjp.getCategoryConfigurations() != null && !tjp.getCategoryConfigurations().isEmpty()) {
+                    for (ThrottleJobProperty.CategoryConfiguration catCfg : tjp.getCategoryConfigurations()) {
                         // Quick check that catNm itself is a real string.
-                        if (catNm != null && !catNm.equals("")) {
+                        if (catCfg != null && catCfg.getCategoryName() != null && !catCfg.getCategoryName().equals("")) {
+                            String catNm = catCfg.getCategoryName();
                             List<AbstractProject<?,?>> categoryProjects = getCategoryProjects(catNm);
                             
                             ThrottleJobProperty.ThrottleCategory category =
@@ -114,10 +115,11 @@ public class ThrottleQueueTaskDispatcher extends QueueTaskDispatcher {
         }
         // If the project is in one or more categories...
         else if (tjp.getThrottleOption().equals("category")) {
-            if (tjp.getCategories() != null && !tjp.getCategories().isEmpty()) {
-                for (String catNm : tjp.getCategories()) {
+            if (tjp.getCategoryConfigurations() != null && !tjp.getCategoryConfigurations().isEmpty()) {
+                for (ThrottleJobProperty.CategoryConfiguration catCfg : tjp.getCategoryConfigurations()) {
                     // Quick check that catNm itself is a real string.
-                    if (catNm != null && !catNm.equals("")) {
+                    if (catCfg != null && catCfg.getCategoryName() != null && !catCfg.getCategoryName().equals("")) {
+                        String catNm = catCfg.getCategoryName();
                         List<AbstractProject<?,?>> categoryProjects = getCategoryProjects(catNm);
                         
                         ThrottleJobProperty.ThrottleCategory category =
@@ -217,9 +219,12 @@ public class ThrottleQueueTaskDispatcher extends QueueTaskDispatcher {
             for (AbstractProject<?,?> p : Hudson.getInstance().getAllItems(AbstractProject.class)) {
                 ThrottleJobProperty t = p.getProperty(ThrottleJobProperty.class);
                 
-                if (t!=null && t.getThrottleEnabled()) {
-                    if (t.getCategories()!=null && t.getCategories().contains(category)) {
-                        categoryProjects.add(p);
+                if (t!=null && t.getThrottleEnabled() && t.getCategoryConfigurations() != null) {
+                    for (ThrottleJobProperty.CategoryConfiguration catCfg : t.getCategoryConfigurations()) {
+                        String catNam = catCfg.getCategoryName();
+                        if (catNam != null && catNam.equals(category)) {
+                            categoryProjects.add(p);
+                        }
                     }
                 }
             }
