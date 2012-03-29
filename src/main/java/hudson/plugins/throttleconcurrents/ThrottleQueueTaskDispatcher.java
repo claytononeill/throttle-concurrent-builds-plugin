@@ -130,16 +130,30 @@ public class ThrottleQueueTaskDispatcher extends QueueTaskDispatcher {
                             if (category.getMaxConcurrentTotal().intValue() > 0) {
                                 int maxConcurrentTotal = category.getMaxConcurrentTotal().intValue();
                                 int totalRunCount = 0;
+                                boolean writer_locked = false;
                                 
                                 for (AbstractProject<?,?> catProj : categoryProjects) {
                                     if (Hudson.getInstance().getQueue().isPending(catProj)) {
                                         return CauseOfBlockage.fromMessage(Messages._ThrottleQueueTaskDispatcher_BuildPending());
                                     }
-                                    totalRunCount += buildsOfProjectOnAllNodes(catProj);
+                                    int running = buildsOfProjectOnAllNodes(catProj);
+                                    if (running > 0 && isCategoryWriter(catProj, catNm)) {
+                                        writer_locked = true;
+                                    }
+                                    totalRunCount += running;
                                 }
                                 
                                 if (totalRunCount >= maxConcurrentTotal) {
                                     return CauseOfBlockage.fromMessage(Messages._ThrottleQueueTaskDispatcher_MaxCapacityTotal(totalRunCount));
+                                }
+                                else if (catCfg.getCategoryType().equals("writer") && writer_locked) {
+                                    return CauseOfBlockage.fromMessage(Messages._ThrottleQueueTaskDispatcher_WriterLock());
+                                }
+                                else if (catCfg.getCategoryType().equals("writer") && totalRunCount > 0) {
+                                    return CauseOfBlockage.fromMessage(Messages._ThrottleQueueTaskDispatcher_WriterLock());
+                                }
+                                else if (catCfg.getCategoryType().equals("reader") && writer_locked) {
+                                    return CauseOfBlockage.fromMessage(Messages._ThrottleQueueTaskDispatcher_ReaderLock());
                                 }
                             }
                             
@@ -152,6 +166,17 @@ public class ThrottleQueueTaskDispatcher extends QueueTaskDispatcher {
         return null;
     }
 
+    private boolean isCategoryWriter(Task task, String categoryName) {
+        ThrottleJobProperty tjp = getThrottleJobProperty(task);
+
+        for (ThrottleJobProperty.CategoryConfiguration catCfg : tjp.getCategoryConfigurations()) {
+            if (catCfg.getCategoryName().equals(categoryName) && catCfg.getCategoryType().equals("writer")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private ThrottleJobProperty getThrottleJobProperty(Task task) {
         if (task instanceof AbstractProject) {
